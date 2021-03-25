@@ -39,5 +39,14 @@ public:
 	*/
 	void clear();
 private:
-
+	Node* root;
+	Node* find(Node* currentNode, int value);
+	void addHelper(Node* currentNode, Node* prevNode, int value);
+	void removeHelper(Node* currentNode);
+	Node* findRemoveReplacement(Node* currentNode, int iteration);
+	int getMaxChildHeight(Node* currentNode);
+	int getChildHeightDiff(Node* currentNode);
+	void rotateRight(Node* currentNode);
+	void rotateLeft(Node* currentNode);
+	void rebalance(Node* currentNode);
 };

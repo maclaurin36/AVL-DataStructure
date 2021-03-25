@@ -3,6 +3,7 @@
 class Node : public NodeInterface {
 public:
 	Node();
+	Node(Node* parent, int data);
 	~Node();
 
 	/*
@@ -38,6 +39,11 @@ public:
 	*/
 	int getHeight();
 private:
+	Node* parent;
+	Node* leftChild;
+	Node* rightChild;
+	int data;
+	int height;
 	friend class AVL;
 
 };
