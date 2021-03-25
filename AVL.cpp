@@ -53,11 +53,6 @@ bool AVL::remove(int data) {
 		Node* parentNode = foundNode->parent;
 		removeHelper(foundNode);
 
-		/*if (parentNode == 0) {
-			rebalance(root);
-			root->height = getMaxChildHeight(root) + 1;
-		}*/
-
 		while (parentNode != 0) {
 			rebalance(parentNode);
 			parentNode->height = getMaxChildHeight(parentNode) + 1;
@@ -102,7 +97,6 @@ Node* AVL::find(Node* currentNode, int value) {
 * so we don't need to worry about it possibly not being added
 */
 void AVL::addHelper(Node* currentNode, Node* prevNode, int value) {
-	bool valueAdded = false;
 	if (currentNode == 0) {
 		// Extra case for the root (parent isn't defined)
 		if (currentNode == root) {
@@ -116,20 +110,22 @@ void AVL::addHelper(Node* currentNode, Node* prevNode, int value) {
 				prevNode->rightChild = newNode;
 			}
 		}
-		return;
 	} else if (value > currentNode->data) {
 		addHelper(currentNode->rightChild, currentNode, value);
 		// Check conditions to rebalance the tree
 		rebalance(currentNode);
-		currentNode->height = getMaxChildHeight(currentNode) + 1;
 	} else if (value < currentNode->data) {
 		addHelper(currentNode->leftChild, currentNode, value);
 		// Check conditions to rebalance the tree
 		rebalance(currentNode);
-		currentNode->height = getMaxChildHeight(currentNode) + 1;
 	}
 }
 
+/*
+* Finds the node with which we will replace the node being removed
+* also rebalances the tree on the recursion back to the node being
+* removed, returning the replacement Node
+*/
 Node* AVL::findRemoveReplacement(Node *currentNode, int iteration) {
 	Node* parentNode = currentNode;
 	if (iteration == 0) {
@@ -145,11 +141,11 @@ Node* AVL::findRemoveReplacement(Node *currentNode, int iteration) {
 	// Check conditions to rebalance the tree
 	if (currentNode->height != 0 && currentNode->height != 1) {
 		rebalance(currentNode);
-		currentNode->height = getMaxChildHeight(currentNode) + 1;
 	}
 	return returnNode;
 }
 
+/* Recursive helper function to remove a Node */
 void AVL::removeHelper(Node *currentNode) {
 	if (currentNode->leftChild == 0) {
 		if (currentNode != root) {
@@ -188,13 +184,13 @@ void AVL::removeHelper(Node *currentNode) {
 	} else {
 		Node* replacement = findRemoveReplacement(currentNode, 0);
 		rebalance(currentNode);
-		currentNode->height = getMaxChildHeight(currentNode) + 1;
 		int replacementData = replacement->data;
 		removeHelper(replacement);
 		currentNode->data = replacementData;
 	}
 }
-
+/* Returns the max height of a node's children to determine the Node's height
+*/
 int AVL::getMaxChildHeight(Node *currentNode) {
 	int leftHeight = 0;
 	int rightHeight = 0;
@@ -213,6 +209,9 @@ int AVL::getMaxChildHeight(Node *currentNode) {
 	return returnHeight;
 }
 
+/* Calculates the difference between children's heights to see if we
+* need to rebalance
+*/
 int AVL::getChildHeightDiff(Node* currentNode) {
 	int rHeight = 0;
 	int lHeight = 0;
@@ -225,6 +224,7 @@ int AVL::getChildHeightDiff(Node* currentNode) {
 	return rHeight - lHeight;
 }
 
+/* Rotates right around the argument node */
 void AVL::rotateRight(Node* currentNode) {
 	currentNode->parent->leftChild = currentNode->rightChild;
 	currentNode->rightChild = currentNode->parent;
@@ -234,27 +234,6 @@ void AVL::rotateRight(Node* currentNode) {
 		currentNode->rightChild->leftChild->parent = currentNode->rightChild;
 	}
 	if (currentNode->parent != 0) {
-		// problem here
-		if (((currentNode->parent->rightChild == currentNode->rightChild) && (currentNode->rightChild != 0)) || ((currentNode->parent->rightChild == currentNode->leftChild) && (currentNode->leftChild != 0))) {
-			currentNode->parent->rightChild = currentNode;
-		} else {
-			currentNode->parent->leftChild = currentNode;
-		}
-	} else {
-		root = currentNode;
-	}
-}
-// arg is rotateNodeChild
-void AVL::rotateLeft(Node* currentNode) {
-	currentNode->parent->rightChild = currentNode->leftChild;
-	currentNode->leftChild = currentNode->parent;
-	currentNode->parent = currentNode->leftChild->parent;
-	currentNode->leftChild->parent = currentNode;
-	if (currentNode->leftChild->rightChild != 0) {
-		currentNode->leftChild->rightChild->parent = currentNode->leftChild;
-	}
-	if (currentNode->parent != 0) {
-		// problem here
 		if (((currentNode->parent->rightChild == currentNode->rightChild) && (currentNode->rightChild != 0)) || ((currentNode->parent->rightChild == currentNode->leftChild) && (currentNode->leftChild != 0))) {
 			currentNode->parent->rightChild = currentNode;
 		} else {
@@ -265,6 +244,29 @@ void AVL::rotateLeft(Node* currentNode) {
 	}
 }
 
+/* Rotates left around the argument node */
+void AVL::rotateLeft(Node* currentNode) {
+	currentNode->parent->rightChild = currentNode->leftChild;
+	currentNode->leftChild = currentNode->parent;
+	currentNode->parent = currentNode->leftChild->parent;
+	currentNode->leftChild->parent = currentNode;
+	if (currentNode->leftChild->rightChild != 0) {
+		currentNode->leftChild->rightChild->parent = currentNode->leftChild;
+	}
+	if (currentNode->parent != 0) {
+		if (((currentNode->parent->rightChild == currentNode->rightChild) && (currentNode->rightChild != 0)) || ((currentNode->parent->rightChild == currentNode->leftChild) && (currentNode->leftChild != 0))) {
+			currentNode->parent->rightChild = currentNode;
+		} else {
+			currentNode->parent->leftChild = currentNode;
+		}
+	} else {
+		root = currentNode;
+	}
+}
+
+/* Determines how to and rotates the tree (if at all) after adding or
+* removing a node
+*/
 void AVL::rebalance(Node* currentNode) {
 	int curHeightDiff = getChildHeightDiff(currentNode);
 	if (curHeightDiff == -2) {
@@ -295,6 +297,7 @@ void AVL::rebalance(Node* currentNode) {
 			currentNode->parent->rightChild->height = getMaxChildHeight(currentNode->parent->rightChild) + 1;
 			currentNode->parent->height = getMaxChildHeight(currentNode->parent) + 1;
 		}
+	} else {
+		currentNode->height = getMaxChildHeight(currentNode) + 1;
 	}
-	currentNode->height = getMaxChildHeight(currentNode) + 1;
 }
