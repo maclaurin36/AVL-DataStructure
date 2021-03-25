@@ -52,6 +52,12 @@ bool AVL::remove(int data) {
 	} else {
 		Node* parentNode = foundNode->parent;
 		removeHelper(foundNode);
+
+		/*if (parentNode == 0) {
+			rebalance(root);
+			root->height = getMaxChildHeight(root) + 1;
+		}*/
+
 		while (parentNode != 0) {
 			rebalance(parentNode);
 			parentNode->height = getMaxChildHeight(parentNode) + 1;
@@ -137,7 +143,7 @@ Node* AVL::findRemoveReplacement(Node *currentNode, int iteration) {
 	}
 	Node* returnNode = findRemoveReplacement(currentNode, iteration + 1);
 	// Check conditions to rebalance the tree
-	if (!(currentNode->height == 0)) {
+	if (currentNode->height != 0 && currentNode->height != 1) {
 		rebalance(currentNode);
 		currentNode->height = getMaxChildHeight(currentNode) + 1;
 	}
